@@ -23,7 +23,7 @@ async function loginController(req, res) {
     return res
       .header("x-auth-token", token)
       .status(200)
-      .json({ msg: "logged in successfully" });
+      .json({ msg: "logged in successfully", token: token });
   } catch (error) {
     res.status(500).json({ msg: "INTERNAL SERVER ERROR" });
   }
