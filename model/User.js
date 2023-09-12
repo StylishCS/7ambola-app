@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     maxlength: 255,
   },
+  verified: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 const User = mongoose.model("User", userSchema);

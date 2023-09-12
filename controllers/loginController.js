@@ -18,12 +18,16 @@ async function loginController(req, res) {
       return res.status(401).json({ msg: "wrong email or password.." });
     }
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY);
+    if(!user.verified){
+      return res.status(401).json({msg: "User not verified.."})
+    }
+    
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, {expiresIn: process.env.JWT_EXPIRE_IN});
 
     return res
       .header("x-auth-token", token)
       .status(200)
-      .json({ msg: "logged in successfully", token: token });
+      .json({ data: user, token: token });
   } catch (error) {
     res.status(500).json({ msg: "INTERNAL SERVER ERROR" });
   }
