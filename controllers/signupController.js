@@ -173,8 +173,11 @@ async function resetRequest(req, res) {
     if (!(await bcrypt.compare(req.body.otp, otp.code))) {
       return res.status(401).json({ msg: "Wrong code." });
     }
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: process.env.JWT_EXPIRE_IN,
+    });
     await OTP.deleteMany({ email: user.email });
-    return res.status(200).json({ msg: "Procced to reset password.." });
+    return res.status(200).json({ msg: "Procced to reset password..", token: token });
   } catch (error) {
     return res.status(500).json({ msg: "Internal server error." });
   }

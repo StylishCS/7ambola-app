@@ -8,9 +8,9 @@ const { loginController } = require("../controllers/loginController");
 router.post("/login", loginController);
 router.post("/signup", signupController);
 router.post("/verify", auth, verify);
-router.post("/resend-otp", auth, resendOTP);
-router.post("/reset-otp", auth, resendOTP);
-router.post("/reset-verify", auth, resetRequest);
+router.post("/resend-otp", resendOTP);
+router.post("/reset-otp", resendOTP);
+router.post("/reset-verify", resetRequest);
 router.post("/reset-password", auth, resetPassword);
 
 module.exports = router;
