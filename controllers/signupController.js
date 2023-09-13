@@ -126,36 +126,6 @@ async function resendOTP(req, res) {
   res.status(201).json({ msg: "code sent.." });
 }
 
-// async function verify(req, res) {
-//   try {
-//     const user = await User.findOne({ email: req.body.email });
-//     if (!user) {
-//       return res.status(404).json({ msg: "user not found.." });
-//     }
-//     if (user.verified) {
-//       return res.status(400).json({ msg: "user already verified.." });
-//     }
-//     const otp = await OTP.findOne({ email: user.email });
-//     if (!otp) {
-//       return res.status(404).json({ msg: "no otp was sent.." });
-//     }
-//     let d = new Date();
-//     if ((Number(d) < Number(otp.expiresAt))) {
-//       return res.status(400).json({ msg: "otp has expired.." });
-//     }
-//     if (await bcrypt.compare(otp.code, req.body.otp)) {
-//       return res.status(401).json({ msg: "Wrong code.." });
-//     }
-//     user.verified = true;
-//     await user.save()
-//     await OTP.deleteMany({ email: user.email });
-//     return res.status(200).json({msg: "user verified successfuly"})
-//   } catch (error) {
-//     return res.status(500).json({msg: "INTERNAL SERVER ERROR"})
-//   }
-
-// }
-
 async function verify(req, res) {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -186,4 +156,69 @@ async function verify(req, res) {
   }
 }
 
-module.exports = { signupController, verify, resendOTP };
+async function resetRequest(req, res) {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
+    const otp = await OTP.findOne({ email: user.email });
+    if (!otp) {
+      return res.status(404).json({ msg: "No OTP was sent." });
+    }
+    let d = new Date();
+    if (Number(d) < Number(otp.expiresAt)) {
+      return res.status(400).json({ msg: "OTP has expired." });
+    }
+    if (!(await bcrypt.compare(req.body.otp, otp.code))) {
+      return res.status(401).json({ msg: "Wrong code." });
+    }
+    await OTP.deleteMany({ email: user.email });
+    return res.status(200).json({ msg: "Procced to reset password.." });
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal server error." });
+  }
+}
+
+async function resetPassword(req, res) {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
+    }
+    const newPass = await bcrypt.hash(req.body.password, 10);
+    user.password = newPass;
+    await user.save();
+    let transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      service: "Gmail",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASSWORD,
+      },
+    });
+    let message = {
+      from: "7AMBOLA",
+      to: req.body.email,
+      subject: "Password Changed",
+      text: `Your password has been changed! If you believe you didn't attempt changing your password please contact us.`,
+      html: `<h1>Your password has been changed!<h1><br><p>If you believe you didn't attempt changing your password please contact us.</p>`,
+    };
+    await transporter.sendMail(message).catch((err) => {
+      return res.status(400).json({ error: true, msg: "Email not sent" });
+    });
+    return res.status(200).json({ msg: "password changed successfuly!" });
+  } catch (error) {
+    return res.status(500).json({ msg: "Internal server error." });
+  }
+}
+
+module.exports = {
+  signupController,
+  verify,
+  resendOTP,
+  resetPassword,
+  resetRequest,
+};
