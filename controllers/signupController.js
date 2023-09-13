@@ -84,7 +84,7 @@ async function resendOTP(req, res) {
   if (!user) {
     return res.status(404).json({ error: "user not found.." });
   }
-  await OTP.deleteMany({email: user.email})
+  await OTP.deleteMany({ email: user.email });
   let transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     service: "Gmail",
@@ -123,7 +123,7 @@ async function resendOTP(req, res) {
   });
 
   await OTP_Obj.save();
-  res.status(201).json({msg:"code sent.."})
+  res.status(201).json({ msg: "code sent.." });
 }
 
 // async function verify(req, res) {
@@ -154,7 +154,6 @@ async function resendOTP(req, res) {
 //     return res.status(500).json({msg: "INTERNAL SERVER ERROR"})
 //   }
 
-  
 // }
 
 async function verify(req, res) {
@@ -174,7 +173,7 @@ async function verify(req, res) {
     if (Number(d) < Number(otp.expiresAt)) {
       return res.status(400).json({ msg: "OTP has expired." });
     }
-    if (await bcrypt.compare(otp.code, req.body.otp)) {
+    if (!(await bcrypt.compare(req.body.otp, otp.code))) {
       return res.status(401).json({ msg: "Wrong code." });
     }
     user.verified = true;
