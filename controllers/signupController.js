@@ -126,35 +126,65 @@ async function resendOTP(req, res) {
   res.status(201).json({msg:"code sent.."})
 }
 
+// async function verify(req, res) {
+//   try {
+//     const user = await User.findOne({ email: req.body.email });
+//     if (!user) {
+//       return res.status(404).json({ msg: "user not found.." });
+//     }
+//     if (user.verified) {
+//       return res.status(400).json({ msg: "user already verified.." });
+//     }
+//     const otp = await OTP.findOne({ email: user.email });
+//     if (!otp) {
+//       return res.status(404).json({ msg: "no otp was sent.." });
+//     }
+//     let d = new Date();
+//     if ((Number(d) < Number(otp.expiresAt))) {
+//       return res.status(400).json({ msg: "otp has expired.." });
+//     }
+//     if (await bcrypt.compare(otp.code, req.body.otp)) {
+//       return res.status(401).json({ msg: "Wrong code.." });
+//     }
+//     user.verified = true;
+//     await user.save()
+//     await OTP.deleteMany({ email: user.email });
+//     return res.status(200).json({msg: "user verified successfuly"})
+//   } catch (error) {
+//     return res.status(500).json({msg: "INTERNAL SERVER ERROR"})
+//   }
+
+  
+// }
+
 async function verify(req, res) {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(404).json({ msg: "user not found.." });
+      return res.status(404).json({ msg: "User not found." });
     }
     if (user.verified) {
-      return res.status(400).json({ msg: "user already verified.." });
+      return res.status(400).json({ msg: "User already verified." });
     }
     const otp = await OTP.findOne({ email: user.email });
     if (!otp) {
-      return res.status(404).json({ msg: "no otp was sent.." });
+      return res.status(404).json({ msg: "No OTP was sent." });
     }
     let d = new Date();
-    if ((Number(d) < Number(otp.expiresAt))) {
-      return res.status(400).json({ msg: "otp has expired.." });
+    if (Number(d) < Number(otp.expiresAt)) {
+      return res.status(400).json({ msg: "OTP has expired." });
     }
     if (await bcrypt.compare(otp.code, req.body.otp)) {
-      return res.status(401).json({ msg: "Wrong code.." });
+      return res.status(401).json({ msg: "Wrong code." });
     }
     user.verified = true;
-    await user.save()
+    await user.save();
     await OTP.deleteMany({ email: user.email });
-    res.status(200).json({msg: "user verified successfuly"})
+    return res.status(200).json({ msg: "User verified successfully." });
   } catch (error) {
-    return res.status(500).json({msg: "INTERNAL SERVER ERROR"})
+    console.log(error);
+    return res.status(500).json({ msg: "Internal server error." });
   }
-
-  
 }
 
 module.exports = { signupController, verify, resendOTP };

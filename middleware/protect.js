@@ -4,17 +4,27 @@ async function auth(req, res, next) {
   try {
     const token = req.header("x-auth-token");
     if (!token) {
-      return res.status(401).json({ msg: "access denied, no provided token.." });
+      return res
+        .status(401)
+        .json({ msg: "access denied, no provided token.." });
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded)=>{
-      if(err){
-        return res.status(401).json({msg: "Expired Session.."})
+    let verify=0;
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY,
+      (err, decoded) => {
+        if (err) {
+          verify = err;
+        }
+        req.user = decoded;
       }
-      req.user = decoded;
-    });
+    );
+    if(verify!=0){
+      return res.status(400).json({msg: verify});
+    }
     next();
   } catch (error) {
-    res.status(400).json({ msg: "invalid token.." });
+    return res.status(400).json({ msg: "invalid token.." });
   }
 }
 
